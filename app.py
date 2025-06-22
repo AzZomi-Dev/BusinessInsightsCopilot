@@ -131,7 +131,7 @@ Respond in this JSON format:
 """
 
         response = client.chat.completions.create(
-            model="gpt-2",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You're a helpful Python data analyst."},
                 {"role": "user", "content": question_prompt}
