@@ -89,7 +89,6 @@ if sales_file and support_file:
             Provide a 3-bullet insight summary about unusual patterns, potential causes, and business suggestions.
             """
 
-            client = OpenAI()
 
             response = client.chat.completions.create(
                 model="gpt-4",
@@ -130,8 +129,6 @@ Respond in this JSON format:
   "answer": "A short, plain-English answer or summary"
 }}
 """
-
-        client = OpenAI()
 
         response = client.chat.completions.create(
             model="gpt-2",
