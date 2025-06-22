@@ -5,7 +5,7 @@ from openai import OpenAI
 import matplotlib.pyplot as plt
 
 # Configure OpenAI
-openai.api_key = st.secrets["openai"]["api_key"]
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
 st.set_page_config(page_title="Business Insights Copilot", layout="wide")
 
