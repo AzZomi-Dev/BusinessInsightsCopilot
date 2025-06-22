@@ -130,37 +130,44 @@ Respond in this JSON format:
 }}
 """
 
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You're a helpful Python data analyst."},
-                {"role": "user", "content": question_prompt}
-            ],
-            temperature=0.3
-        )
+try:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You're a helpful Python data analyst."},
+            {"role": "user", "content": question_prompt}
+        ],
+        temperature=0.3
+    )
 
-        reply = response.choices[0].message.content
-        st.markdown("### 🧠 GPT Reasoning + Answer")
-        st.code(reply, language='json')
+    reply = response.choices[0].message.content
+    st.markdown("### 🧠 GPT Reasoning + Answer")
+    st.code(reply, language='json')
 
-        # Parse code from reply
-        import json, re
-        code_block = re.search(r'"code":\s*"(.*?)"', reply, re.DOTALL)
-        if code_block:
-            try:
-                python_code = bytes(code_block.group(1), "utf-8").decode("unicode_escape")
+    # Parse code from reply
+    import json, re
+    code_block = re.search(r'"code":\s*"(.*?)"', reply, re.DOTALL)
+    if code_block:
+        try:
+            python_code = bytes(code_block.group(1), "utf-8").decode("unicode_escape")
 
-                with contextlib.redirect_stdout(io.StringIO()) as f:
-                    exec(python_code, {"sales_df": sales_df, "support_df": support_df})
-                result = f.getvalue()
+            with contextlib.redirect_stdout(io.StringIO()) as f:
+                exec(python_code, {"sales_df": sales_df, "support_df": support_df})
+            result = f.getvalue()
 
-                st.success("✅ Answer Output:")
-                st.code(result)
+            st.success("✅ Answer Output:")
+            st.code(result)
 
-            except Exception as e:
-                st.error(f"Error executing code: {e}")
-        else:
-            st.warning("GPT didn't return usable Python code.")
+        except Exception as e:
+            st.error(f"Error executing code: {e}")
+    else:
+        st.warning("GPT didn't return usable Python code.")
+
+except openai.NotFoundError:
+    st.error("❌ Expired, try later.")
+except Exception as e:
+    st.error(f"An unexpected error occurred: {e}")
+
 
 else:
     st.info("Please upload both CSV files to begin.")
