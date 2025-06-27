@@ -104,13 +104,13 @@ if sales_file and support_file:
             import io
 import contextlib
 
+# Ask Your Data Copilot
 st.subheader("💬 Ask Your Data Copilot")
 
 user_question = st.text_input("Ask a question about your data (e.g., 'Average resolution time in April?')")
 
 if user_question and sales_file and support_file:
     with st.spinner("AI is thinking..."):
-
         question_prompt = f"""
 You are a data analyst AI. Answer this question using the data provided.
 
@@ -130,45 +130,42 @@ Respond in this JSON format:
 }}
 """
 
-try:
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You're a helpful Python data analyst."},
-            {"role": "user", "content": question_prompt}
-        ],
-        temperature=0.3
-    )
-
-    reply = response.choices[0].message.content
-    st.markdown("### 🧠 GPT Reasoning + Answer")
-    st.code(reply, language='json')
-
-    # Parse code from reply
-    import json, re
-    code_block = re.search(r'"code":\s*"(.*?)"', reply, re.DOTALL)
-    if code_block:
         try:
-            python_code = bytes(code_block.group(1), "utf-8").decode("unicode_escape")
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You're a helpful Python data analyst."},
+                    {"role": "user", "content": question_prompt}
+                ],
+                temperature=0.3
+            )
 
-            with contextlib.redirect_stdout(io.StringIO()) as f:
-                exec(python_code, {"sales_df": sales_df, "support_df": support_df})
-            result = f.getvalue()
+            reply = response.choices[0].message.content
+            st.markdown("### 🧠 GPT Reasoning + Answer")
+            st.code(reply, language='json')
 
-            st.success("✅ Answer Output:")
-            st.code(result)
+            # Parse code from reply
+            import json, re
+            code_block = re.search(r'"code":\s*"(.*?)"', reply, re.DOTALL)
+            if code_block:
+                try:
+                    python_code = bytes(code_block.group(1), "utf-8").decode("unicode_escape")
 
+                    with contextlib.redirect_stdout(io.StringIO()) as f:
+                        exec(python_code, {"sales_df": sales_df, "support_df": support_df})
+                    result = f.getvalue()
+
+                    st.success("✅ Answer Output:")
+                    st.code(result)
+
+                except Exception as e:
+                    st.error(f"Error executing code: {e}")
+            else:
+                st.warning("GPT didn't return usable Python code.")
+
+        except openai.NotFoundError:
+            st.error("❌ Expired, try later.")
         except Exception as e:
-            st.error(f"Error executing code: {e}")
-    else:
-        st.warning("GPT didn't return usable Python code.")
-
-except openai.NotFoundError:
-    st.error("❌ Expired, try later.")
-except Exception as e:
-    st.error(f"An unexpected error occurred: {e}")
-
-
+            st.error(f"An unexpected error occurred: {e}")
 else:
     st.info("Please upload both CSV files to begin.")
-
